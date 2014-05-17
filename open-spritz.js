@@ -67,6 +67,8 @@ var ospritz = ospritz || {
                     words: this.getWords(x)
                 };
             };
+            text = text.replace(/e\.g\./g, "for example");
+            text = text.replace(/(\w)- /g, "$1");
             return text.split(/[\.]+/g).filter(this.nonEmpty).map(map.bind(this));
         },
 
