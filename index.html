@@ -32,7 +32,28 @@
 			  $("#go").html('Pause');
 				ospritz.init($('#text'), wpm, $('#word'));
 		});
+
+		
+		$(document).keydown(function(e) {
+      if (e.which == 32){//space bar
+      	var a = e.target;
+      	var b = $('#text')[0];
+      	if (a != b) {
+          e.preventDefault();
+          if ($('#go').html() == "Pause") {
+			  	  $("#go").html('Resume');
+			      ospritz.pause();
+		    	} else if ($('#go').html() == "Resume") {
+		  	  	$("#go").html('Pause');
+	  		    ospritz.resume();
+  			  }
+        }
+      }   
+       
+    });
+
 	});
+		
 	</script>
 	<style>
 	#word {
