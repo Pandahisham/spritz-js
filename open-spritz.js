@@ -225,6 +225,10 @@ var ospritz = ospritz || {
       this.model.wpm = 0;
       this.clearTimers();
     },
+    abort: function() {
+      this.model.state.sentence = 0; // start reading from the first sentence
+      this.finishSpritz();
+    },
     init: function (inputElement, wpm, outputElement) {
         if (!window.jQuery) throw "jQuery Not Loaded";
         this.clearTimers();
