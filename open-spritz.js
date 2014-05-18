@@ -35,29 +35,40 @@ var ospritz = ospritz || {
             sentence: 0,
             word: 0
         },
+        inputElement: $(),
         outputElement: $(),
         wpm: 400,
+        savewpm: 400,
         timer: {
             cancel: function () {}
         },
+        cleanText: "",
 
-        init: function (text, wpm, outputElement) {
+        init: function (inputElement, wpm, outputElement) {
+        		this.cleanText = inputElement.val();
+            this.cleanText = this.cleanText.replace(/e\.g\./g, "for example");
+            this.cleanText = this.cleanText.replace(/(\w)- /g, "$1");
+        		inputElement.val(this.cleanText);
             this.data = {
-                text: text,
+                text: this.cleanText,
                 paragraphs: this.getParagraphs(text)
             };
+
             this.wpm = wpm;
+            this.savewpm = wpm;
             this.outputElement = outputElement;
+            this.inputElement = inputElement;
         },
 
         getParagraphs: function (text) {
-            var map = function (x) {
+        	  var map = function (x) {
                 return {
                     text: x,
                     sentences: this.getSentences(x)
                 };
             };
-            return text.split(/[\n\r]+/g).filter(this.nonEmpty).map(map.bind(this));
+            
+            return text.value.split(/[\n\r]+/g).filter(this.nonEmpty).map(map.bind(this));
         },
 
         getSentences: function (text) {
@@ -67,8 +78,6 @@ var ospritz = ospritz || {
                     words: this.getWords(x)
                 };
             };
-            text = text.replace(/e\.g\./g, "for example");
-            text = text.replace(/(\w)- /g, "$1");
             return text.split(/[\.]+/g).filter(this.nonEmpty).map(map.bind(this));
         },
 
@@ -125,7 +134,6 @@ var ospritz = ospritz || {
     },
 
     spritzParagraph: function () {
-        this.model.state.sentence = 0; // start reading from the first sentence
         this.spritzSentence();
     },
 
@@ -136,6 +144,10 @@ var ospritz = ospritz || {
         var paragraphs = model.data.paragraphs;
         var sentence = paragraphs[state.paragraph].sentences[state.sentence];
         state.word = 0; // start reading from the first word
+
+        this.model.inputElement.highlightTextarea('destroy');
+        this.model.inputElement.highlightTextarea({ sentence: sentence});
+
 
         var doNextWord = function () {
             if (state.word == sentence.words.length) {
@@ -150,7 +162,8 @@ var ospritz = ospritz || {
             self.draw(sentence.words[state.word]);
             state.word++;
         };
-        model.timer = accurateInterval(doNextWord, (60000 / model.wpm));
+        var step = model.wpm == 0 ? 100000 : 60000 / model.wpm;
+        model.timer = accurateInterval(doNextWord, step);
     },
 
     finishSentence: function () {
@@ -175,6 +188,7 @@ var ospritz = ospritz || {
             this.finishSpritz(); //finished the spritz
         } else {
             var self = this;
+            this.model.state.sentence = 0; // start reading from the first sentence
             this.model.timeout = setTimeout(function () {
                 self.spritzParagraph(); //do another paragraph
             }, 400);
@@ -201,10 +215,18 @@ var ospritz = ospritz || {
         this.model.timer.cancel();
     },
 
-    init: function (text, outputElement, wpm) {
+    resume: function() {
+      this.model.wpm = this.model.savewpm;
+      this.startSpritzing();
+    },
+    pause: function() {
+      this.model.wpm = 0;
+      this.clearTimers();
+    },
+    init: function (inputElement, wpm, outputElement) {
         if (!window.jQuery) throw "jQuery Not Loaded";
         this.clearTimers();
-        this.model.init(text, wpm, outputElement);
+        this.model.init(inputElement, wpm, outputElement);
         this.startSpritzing();
     }
 };

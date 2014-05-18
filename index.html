@@ -1,15 +1,29 @@
 <html>
 <head>
 <title>Speed Reading.</title>
+	<link rel="stylesheet" href="jquery-ui.min.css">
+	<link rel="stylesheet" href="jquery.highlighttextarea.css">
 	<script type="text/javascript" src="jquery-2.1.0.min.js"></script>
+	<script src="jquery-ui.min.js"></script>
+	<script src="jquery.highlighttextarea.js"></script>	
 	<script type="text/javascript" src="open-spritz.js"></script>
 	<script type="text/javascript">
 	$(document).ready(function()
 	{  
 		var wpm = 1;
 		$('#go').on('click', function() {
-			wpm = wpm == 1 ? parseInt($('#wpm').val(), 10) : 1;
-			ospritz.init($('#text').val(), $('#word'), wpm);
+			if($('#go').html() == "Start") {
+			  wpm = parseInt($('#wpm').val(), 10);
+			  $("#go").html('Pause');
+				ospritz.init($('#text'), wpm, $('#word'));
+			} else if ($('#go').html() == "Pause") {
+				$("#go").html('Resume');
+			  ospritz.pause();
+			} else if ($('#go').html() == "Resume") {
+				$("#go").html('Pause');
+			  ospritz.resume();
+			}
+			
 		});
 	});
 	</script>
@@ -37,15 +51,14 @@
 	}
 	</style>
 </head>
-<body>
-	<input id="wpm" type="text" value="400"></input>(wpm)<button id="go" type="button">Go</button>
+<body style="background-color:black;color:white;">
+	<input id="wpm" type="text" value="400" size="10" style="width:50px;"/> wpm: <button id="go" type="button">Start</button>
 	<hr>
 	Paste your text below.
-	<textarea id="text" rows="15">
-	</textarea>
+	<textarea id="text" rows="15"></textarea>
 <br/><br/>
 <center>
-	<div id="word">
+	<div id="word" style="background-color:white;color:black;">
 		<span class="left container"><span class="text"></span></span><span class="pivot container"></span><span class="right container"></span>
 	</div>
 </center>
