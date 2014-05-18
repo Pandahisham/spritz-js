@@ -71,7 +71,9 @@
 
         if(this.settings.sentence != "") {
         	var phrase = this.settings.sentence.text;
+        	text = text.replace(/&amp;/g,"&");
           text = text.replace(phrase, '<span class="highlight" style="background-color:'+ this.settings.color +';">'+phrase+'</span>');
+          
         } else {
           $.each(this.settings.words, function(color, words) {
               text = text.replace(

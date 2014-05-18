@@ -48,6 +48,8 @@ var ospritz = ospritz || {
         		this.cleanText = inputElement.val();
             this.cleanText = this.cleanText.replace(/e\.g\./g, "for example");
             this.cleanText = this.cleanText.replace(/(\w)- /g, "$1");
+            this.cleanText = this.cleanText.replace(/(^|[^\n])\n([^\n]|$)/g, "$1\n\n$2");
+            
         		inputElement.val(this.cleanText);
             this.data = {
                 text: this.cleanText,
