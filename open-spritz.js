@@ -37,8 +37,8 @@ var ospritz = ospritz || {
         },
         inputElement: $(),
         outputElement: $(),
-        wpm: 400,
-        savewpm: 400,
+        wpm: 500,
+        savewpm: 500,
         timer: {
             cancel: function () {}
         },
@@ -80,12 +80,15 @@ var ospritz = ospritz || {
                     words: this.getWords(x)
                 };
             };
-            return text.split(/[\.]+/g).filter(this.nonEmpty).map(map.bind(this));
+            //return text.split(/[\.\?!]+/g).filter(this.nonEmpty).map(map.bind(this));
+            var arr = text.match( /[^\.!\?]+[\.!\?]+/g );
+            if(arr != null)
+            return arr.filter(this.nonEmpty).map(map.bind(this));
         },
 
         getWords: function (text) {
             return text.split(/[\s]+/g).filter(this.nonEmpty).map(function (val, index, arr) {
-                return (index == arr.length - 1) ? val + "." : val;
+                return (index == arr.length - 1) ? val + "" : val;
             });
         },
 
@@ -144,12 +147,19 @@ var ospritz = ospritz || {
         var model = this.model;
         var state = model.state;
         var paragraphs = model.data.paragraphs;
-        var sentence = paragraphs[state.paragraph].sentences[state.sentence];
+        var xsentences = paragraphs[state.paragraph].sentences;
+        var sentence;
+        if(xsentences === undefined) {
+        	sentence = {text: "",words: []};
+        } else {
+          sentence = paragraphs[state.paragraph].sentences[state.sentence];
+        }
         state.word = 0; // start reading from the first word
 
-        this.model.inputElement.highlightTextarea('destroy');
-        this.model.inputElement.highlightTextarea({ sentence: sentence});
-
+				var ta = this.model.inputElement;
+        ta.highlightTextarea('destroy');
+        ta.highlightTextarea({ sentence: sentence});
+        ta.scrollToText(sentence.text);
 
         var doNextWord = function () {
             if (state.word == sentence.words.length) {
@@ -172,7 +182,12 @@ var ospritz = ospritz || {
         var state = this.model.state;
         var paragraph = this.model.data.paragraphs[state.paragraph];
         state.sentence++;
-        if (state.sentence == paragraph.sentences.length) {
+        var xsentences = paragraph.sentences;
+        if (xsentences == undefined) {
+        	this.finishParagraph();
+        	return;
+        } 
+        if(state.sentence == paragraph.sentences.length) {
             this.finishParagraph(); //finished the paragraph
         } else {
             var self = this;
@@ -193,7 +208,7 @@ var ospritz = ospritz || {
             this.model.state.sentence = 0; // start reading from the first sentence
             this.model.timeout = setTimeout(function () {
                 self.spritzParagraph(); //do another paragraph
-            }, 400);
+            }, 500);
         }
     },
 

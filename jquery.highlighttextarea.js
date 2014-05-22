@@ -598,4 +598,127 @@
             }
         });
     };
+    
+    
+    $.fn.scrollToText = function(search) {
+    	var log = false;
+    	
+    	/*
+    	 * We don't do anything on new lines
+    	 */
+    	if (!search.match(/\S/)) { 
+    		/*
+    		 * Still find out the last position
+    		 */
+      	var oldpos = $(this).attr('carpos');
+    	  if (oldpos == undefined) {oldpos = 0;}
+    	  
+    	  /*
+    	   * And if we scrolled, correct it
+    	   */
+    	  var pdivTop = $(this).attr('pdivTop');
+    	  if (pdivTop != undefined) {
+    	    oldpos = parseInt(oldpos) + 30;
+    	  }
+    	  
+				/*
+				 * Remember new position, and scroll
+				 */    	  
+	     	$(this).attr('carpos', oldpos);
+    		this.scrollTop(oldpos);
+    		
+    		return; 
+    	}
+    	
+    	/*
+    	 * Look for the phrase
+    	 */
+    	var text   = $(this).val();
+    	var charNo = text.indexOf(search);
+    	
+    	/*
+    	 * If we don't find it, return
+    	 */
+    	if(charNo < 0) return;
+    	
+    	/*
+    	 * Add an anchor for finding the character later
+    	 * and add it to the String between the first character
+    	 * of the phrase and the rest of it. This gives us something
+    	 * like
+    	 *
+    	 * bla bla p<span id="anch"></span>hrase bla bla
+    	 *
+    	 */
+    	var anch = '<span id="anch"></span>';
+    	text = text.substring(0, charNo) + anch + text.substring(charNo);
+    	
+    	/*
+    	 * Create a div as a copy of the textarea
+    	 */
+	    var copyDiv = $('<div></div>')
+	                    .append(text.replace(/\n/g, '<br />'))           // making newlines look the same
+	                    .css('width', $(this).attr('clientWidth'))       // width without scrollbar
+	                    .css('font-size', $(this).css('font-size'))
+	                    .css('font-family', $(this).css('font-family'))
+	                    .css('padding', $(this).css('padding'));
+			    	
+    	/*
+    	 * Put the div behind the text area because .positio() does not work on
+    	 * invisible elements
+    	 */
+    	copyDiv.insertAfter($(this));
+    	
+    	/*
+    	 * Now with the copy of the textarea, we can try to find out the position
+    	 * of the positional span - which we had entered before - relative to the
+    	 * text area's parent div.
+    	 */
+    	var spanTop = copyDiv.find('SPAN#anch').offset().top;
+    	var pdivTop = copyDiv.find('SPAN#anch').closest('DIV').offset().top;
+    	$(this).attr('pdviTop', pdivTop);
+    	
+    	/*
+    	 * If, for some reason, the top of the span is above the top of the div,
+    	 * we have to reposition our span downwards. Otherwise, we have to pull
+    	 * it up.
+    	 */
+    	var pos = spanTop - pdivTop;
+    	var oldpos = $(this).attr('carpos');
+    	if (oldpos == undefined) {oldpos = pos;}
+    	
+    	var oldTop = $(this).attr('oldtop');
+    	if (oldTop == undefined) {oldTop = spanTop;}
+    	if(spanTop <= oldTop) spanTop = oldTop;
+    	$(this).attr('oldtop', spanTop);
+    	
+    	
+    	if(pos == 0) pos = oldpos;
+    	
+    	/*
+    	 * We also need the height of the textarea
+    	 */
+    	var cheight = this[0].clientHeight;
+    	
+    	if(log) {
+    	  console.log("Looking for  : " + search);
+    	  console.log("Client Height: " + cheight + ", spanTop: " + spanTop + ", pdivTop: " + pdivTop);
+    	  console.log("Position     : " + pos);
+    	}
+    	
+    	/*
+    	 * Finally, we want to scroll to some position. We just need to findout,
+    	 * to which position now.
+    	 */
+    	var scrollTo = pos - Math.round(cheight / 2);
+    	this.scrollTop(scrollTo);
+    	
+    	$(this).attr('carpos', pos);
+    	
+    	/*
+    	 * Remove the copyied div
+    	 */
+    	copyDiv.remove();
+    };
+    
 }(jQuery));
