@@ -47,7 +47,10 @@ var ospritz = ospritz || {
         init: function (inputElement, wpm, outputElement) {
         		this.cleanText = inputElement.val();
             this.cleanText = this.cleanText.replace(/e\.g\./g, "for example");
+            this.cleanText = this.cleanText.replace(/i\.e\./g, "that is");
             this.cleanText = this.cleanText.replace(/(\w)- /g, "$1");
+            this.cleanText = this.cleanText.replace(/p\. (\d)/g, "p $1");
+            this.cleanText = this.cleanText.replace(/et al./g, "et al");
             this.cleanText = this.cleanText.replace(/(^|[^\n])\n([^\n]|$)/g, "$1\n\n$2");
             
         		inputElement.val(this.cleanText);
@@ -81,9 +84,14 @@ var ospritz = ospritz || {
                 };
             };
             //return text.split(/[\.\?!]+/g).filter(this.nonEmpty).map(map.bind(this));
+            // var arr = text.match( /[^\.!\?]+[\.!\?]+/g );
             var arr = text.match( /[^\.!\?]+[\.!\?]+/g );
-            if(arr != null)
-            return arr.filter(this.nonEmpty).map(map.bind(this));
+            
+            if(arr == null) 
+              arr = text.split(/[\.\?!]+/g).filter(this.nonEmpty).map(map.bind(this));
+            else 
+            	arr = arr.filter(this.nonEmpty).map(map.bind(this));
+            return arr;
         },
 
         getWords: function (text) {
@@ -148,12 +156,7 @@ var ospritz = ospritz || {
         var state = model.state;
         var paragraphs = model.data.paragraphs;
         var xsentences = paragraphs[state.paragraph].sentences;
-        var sentence;
-        if(xsentences === undefined) {
-        	sentence = {text: "",words: []};
-        } else {
-          sentence = paragraphs[state.paragraph].sentences[state.sentence];
-        }
+        var sentence = paragraphs[state.paragraph].sentences[state.sentence];
         state.word = 0; // start reading from the first word
 
 				var ta = this.model.inputElement;
@@ -182,11 +185,6 @@ var ospritz = ospritz || {
         var state = this.model.state;
         var paragraph = this.model.data.paragraphs[state.paragraph];
         state.sentence++;
-        var xsentences = paragraph.sentences;
-        if (xsentences == undefined) {
-        	this.finishParagraph();
-        	return;
-        } 
         if(state.sentence == paragraph.sentences.length) {
             this.finishParagraph(); //finished the paragraph
         } else {
