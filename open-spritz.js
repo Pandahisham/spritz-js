@@ -29,7 +29,6 @@ window.accurateInterval = function (fn, time) {
 var ospritz = ospritz || {
 
     model: {
-
         state: {
             paragraph: 0,
             sentence: 0,
@@ -42,7 +41,6 @@ var ospritz = ospritz || {
         timer: {
             cancel: function () {}
         },
-        cleanText: "",
 
         init: function (inputElement, wpm, outputElement) {
         		this.cleanText = inputElement.val();
@@ -50,8 +48,11 @@ var ospritz = ospritz || {
             this.cleanText = this.cleanText.replace(/i\.e\./g, "that is");
             this.cleanText = this.cleanText.replace(/(\w)- /g, "$1");
             this.cleanText = this.cleanText.replace(/p\. (\d)/g, "p $1");
-            this.cleanText = this.cleanText.replace(/et al./g, "et al");
+            //this.cleanText = this.cleanText.replace(/et al./g, "et al");
+            this.cleanText = this.cleanText.replace(/(\w)\n([a-z])/g,"$1 $2");
+            this.cleanText = this.cleanText.replace(/([\w])-\n([a-z])/g,"$1$2");
             this.cleanText = this.cleanText.replace(/(^|[^\n])\n([^\n]|$)/g, "$1\n\n$2");
+            this.cleanText = this.cleanText.replace(/(\w)\n/g,"$1.\n");
             
         		inputElement.val(this.cleanText);
             this.data = {
@@ -85,10 +86,10 @@ var ospritz = ospritz || {
             };
             //return text.split(/[\.\?!]+/g).filter(this.nonEmpty).map(map.bind(this));
             // var arr = text.match( /[^\.!\?]+[\.!\?]+/g );
-            var arr = text.match( /[^\.!\?]+[\.!\?]+/g );
+            var arr = text.match( /[^\.!\?]+[\.!\?]+[^a-zA-Z0-9,]*?/g );
             
             if(arr == null) 
-              arr = text.split(/[\.\?!]+/g).filter(this.nonEmpty).map(map.bind(this));
+              arr = text.split(/[\.\?!\n\r]+/g).filter(this.nonEmpty).map(map.bind(this));
             else 
             	arr = arr.filter(this.nonEmpty).map(map.bind(this));
             return arr;
@@ -238,6 +239,66 @@ var ospritz = ospritz || {
       this.model.wpm = 0;
       this.clearTimers();
     },
+    left: function() {
+    	var state     = this.model.state;
+    	var sentence  = state.sentence;
+    	var paragraph = state.paragraph;
+    	
+    	if(sentence > 0) {
+    	  state.sentence--;
+    	} else if(paragraph > 0) {
+    	  while(this.model.data.paragraphs[--state.paragraph].sentences.length == 0);
+    	  state.sentence = this.model.data.paragraphs[state.paragraph].sentences.length - 1;
+    	}
+      this.clearTimers();
+      this.startSpritzing();
+    },
+    right: function() {
+    	var state     = this.model.state;
+    	var sentence  = state.sentence;
+    	var paragraph = state.paragraph;
+    	
+    	if(sentence < this.model.data.paragraphs[paragraph].sentences.length - 1) {
+    	  state.sentence++;
+    	} else if(paragraph < this.model.data.paragraphs.length - 1) {
+    	  while(this.model.data.paragraphs[++state.paragraph].sentences.length == 0);
+    	  state.sentence = 0;//this.model.data.paragraphs[state.paragraph].sentences.length - 1;
+    	}
+      this.clearTimers();
+      this.startSpritzing();
+    },
+    up: function() {
+    	var state     = this.model.state;
+    	var sentence  = state.sentence;
+    	var paragraph = state.paragraph;
+    	if(sentence > 0) {
+    	  state.sentence = 0;
+    	} else {
+	    	if(paragraph > 0) state.paragraph--;
+	    	state.sentence = 0;
+	    }
+    	this.right();this.left();
+      this.clearTimers();
+      this.startSpritzing();
+    },
+    down: function() {
+    	var state     = this.model.state;
+    	var sentence  = state.sentence;
+    	var paragraph = state.paragraph;
+    	if(paragraph < this.model.data.paragraphs.length - 1) {
+ 			  state.paragraph++;
+    		state.sentence = 0;
+    		this.right();this.left();
+	    } else {
+    	  state.sentence = this.model.data.paragraphs[state.paragraph].sentences.length - 1;
+      	this.left();this.right();
+	    }
+      this.clearTimers();
+      this.startSpritzing();
+    },
+
+    
+    
     abort: function() {
       this.model.state.sentence = 0; // start reading from the first sentence
       this.finishSpritz();
