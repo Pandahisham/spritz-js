@@ -1,0 +1,120 @@
+<html>
+<head>
+<title>Speed Reading.</title>
+	<link rel="stylesheet" href="jquery-ui.min.css">
+	<link rel="stylesheet" href="jquery.highlighttextarea.css">
+	<script type="text/javascript" src="jquery-2.1.0.min.js"></script>
+	<script src="jquery-ui.min.js"></script>
+	<script src="jquery.highlighttextarea.js"></script>	
+	<script type="text/javascript" src="open-spritz.js"></script>
+	<script type="text/javascript">
+	$(document).ready(function()
+	{  
+		var wpm = 1;
+		$('#go').on('click', function() {
+			if($('#go').html() == "Start") {
+			  wpm = parseInt($('#wpm').val(), 10);
+			  $("#go").html('Pause');
+				ospritz.init($('#text'), wpm, $('#word'));
+			} else if ($('#go').html() == "Pause") {
+				$("#go").html('Resume');
+			  ospritz.pause();
+			} else if ($('#go').html() == "Resume") {
+				$("#go").html('Pause');
+			  ospritz.resume();
+			}
+			
+		});
+		$('#restart').on('click', function() {
+			  ospritz.pause();
+			  ospritz.abort();
+			  wpm = parseInt($('#wpm').val(), 10);
+			  $("#go").html('Pause');
+				ospritz.init($('#text'), wpm, $('#word'));
+		});
+		
+		$(document).keydown(function(e) {
+      if (e.which == 32){//space bar
+      	var a = e.target;
+      	var b = $('#text')[0];
+      	if (a != b) {
+          e.preventDefault();
+          if ($('#go').html() == "Pause") {
+			  	  $("#go").html('Resume');
+			      ospritz.pause();
+		    	} else if ($('#go').html() == "Resume") {
+		  	  	$("#go").html('Pause');
+	  		    ospritz.resume();
+  			  }
+        }
+      } else if (e.which == 37){//left arrow
+      	var a = e.target;
+      	var b = $('#text')[0];
+      	if (a != b) {
+          e.preventDefault();
+          ospritz.left();
+        }
+      } else if (e.which == 39){//right arrow
+      	var a = e.target;
+      	var b = $('#text')[0];
+      	if (a != b) {
+          e.preventDefault();
+          ospritz.right();
+        }
+      } else if (e.which == 38){//up arrow
+      	var a = e.target;
+      	var b = $('#text')[0];
+      	if (a != b) {
+          e.preventDefault();
+          ospritz.up();
+        }
+      } else if (e.which == 40){//down arrow
+      	var a = e.target;
+      	var b = $('#text')[0];
+      	if (a != b) {
+          e.preventDefault();
+          ospritz.down();
+        }
+      }   
+    });
+    $('#text').focus();
+	});
+		
+	</script>
+	<style>
+	#word {
+		height: 40px;
+		font-size: 26px;
+	}
+	#word > .container {
+		vertical-align: middle;
+	}
+	.left {
+		width: 100px;
+		display: inline-block;
+	}
+	.left > .text {
+		float: right;
+	}
+	.pivot {
+		color: red;
+	}
+
+	#text {
+		width: 100%;
+	}
+	</style>
+</head>
+<body style="background-color:black;color:white;">
+	<input id="wpm" type="text" value="500" size="10" style="width:50px;"/> wpm: <button id="go" type="button">Start</button><button id="restart" type="button">Restart</button>
+	<hr>
+	Paste your text below.
+	<textarea id="text" rows="15"></textarea>
+<br/><br/>
+<center>
+	<div id="word" style="background-color:white;color:black;">
+		<span class="left container"><span class="text"></span></span><span class="pivot container"></span><span class="right container"></span>
+	</div>
+</center>
+	</body>
+	</html>
